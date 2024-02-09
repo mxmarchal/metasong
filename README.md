@@ -1,4 +1,4 @@
-# Metasong - Audio Metadata Extractor
+# 🎵 Metasong - Audio Metadata Extractor
 
 This Python script extracts metadata and lyrics from audio files in an album folder (MP3 format) and saves them to JSON files. It utilizes multiprocessing for parallel processing, making it efficient for handling a large number of audio files.
 
