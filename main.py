@@ -4,6 +4,8 @@ import os
 from dotenv import load_dotenv
 from artwork import get_album_artwork_description
 from metadata import get_metadata, Metadata
+from multiprocessing import Pool
+
 
 def save_metadata_to_json(metadata: Metadata, file_path):
     json_file_path = os.path.splitext(file_path)[0] + '.json'
@@ -19,6 +21,12 @@ def _get_list_of_audio_files(path):
             if file.endswith('.mp3'):
                 audio_files.append(os.path.join(root, file))
     return audio_files
+
+def process_audio_file(audio_file, album_artwork_description):
+    print(f"Processing {audio_file}...")
+    metadata = get_metadata(audio_file, album_artwork_description)
+    save_metadata_to_json(metadata, audio_file)
+    print(f"Metadata and lyrics saved to {os.path.splitext(audio_file)[0]}.json")
 
 def main():
     load_dotenv()
@@ -44,16 +52,10 @@ def main():
     if album_artwork_description == "None":
         print("Album artwork description not found")
 
-    for audio_file in audio_files:
-        print(f"Processing {audio_file}...")
 
-        # Extract metadata
-        metadata = get_metadata(audio_file, album_artwork_description)
-
-        # Save metadata to a JSON file
-        save_metadata_to_json(metadata, audio_file)
-        print(f"Metadata and lyrics saved to {os.path.splitext(audio_file)[0]}.json")
-
+    # Process audio files
+    with Pool() as pool:
+        pool.starmap(process_audio_file, [(audio_file, album_artwork_description) for audio_file in audio_files])
 
 if __name__ == "__main__":
     main()

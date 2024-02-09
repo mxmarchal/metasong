@@ -1,7 +1,6 @@
 from mutagen.id3 import ID3, APIC
 import requests
 import os
-
 from PIL import Image
 import io
 
