@@ -9,6 +9,7 @@ def save_metadata_to_json(metadata: Metadata, file_path):
     json_file_path = os.path.splitext(file_path)[0] + '.json'
     with open(json_file_path, 'w') as f:
         metadata_dict = metadata.__dict__
+        metadata_dict['sentiment'] = metadata.sentiment.to_dict()  # Convert Sentiment to dict
         json.dump(metadata_dict, f, indent=4)
 
 def _get_list_of_audio_files(path):
@@ -25,7 +26,6 @@ def main():
     parser.add_argument("path", help="Path to the album forlder (MP3)")
     args = parser.parse_args()
 
-
     # Check if the path is a folder and exists
     if not os.path.isdir(args.path):
         print(f"Path {args.path} is not a folder or does not exist")
@@ -41,7 +41,8 @@ def main():
 
     # Get album artwork description
     album_artwork_description = get_album_artwork_description(audio_files[0])
-    print(f"Album artwork description: {album_artwork_description}")
+    if album_artwork_description == "None":
+        print("Album artwork description not found")
 
     for audio_file in audio_files:
         print(f"Processing {audio_file}...")
