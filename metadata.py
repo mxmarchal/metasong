@@ -71,9 +71,6 @@ def get_metadata(audio_file_path: str, album_artwork_description: str) -> Metada
 
         # Loading metadata from audio file
         audio = MP3(audio_file_path, ID3=EasyID3)
-        print("All tags:")
-        for key, value in audio.items():
-            print(f"{key}: {value}")
 
         # Extracting basic info
         metadata.track_number = audio["tracknumber"][0]

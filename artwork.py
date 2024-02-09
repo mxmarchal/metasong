@@ -1,13 +1,24 @@
 from mutagen.id3 import ID3, APIC
 import requests
+import os
+
+from PIL import Image
+import io
 
 def _get_image_description(image_data) -> str:
     if image_data is None:
         return "None"
-    response = requests.post("https://api-inference.huggingface.co/models/Salesforce/blip-image-captioning-base", data=image_data)
+    huggingface_api_token = os.environ.get('HUGGINGFACE_API_TOKEN')
+    if huggingface_api_token is None:
+        print("Huggingface API token not found")
+        return "None"
+    headers = {"Authorization": f"Bearer {huggingface_api_token}"}
+    response = requests.post("https://api-inference.huggingface.co/models/Salesforce/blip-image-captioning-base", data=image_data, headers=headers)
+    if response.status_code != 200:
+        print("Error getting image description from Huggingface API")
+        return "None"
     response_json = response.json()
-    print(response_json)
-    return "Not implemented"
+    return response_json[0]["generated_text"]
 
 def get_album_artwork_description(audio_file) -> str:
     # Get album artwork
@@ -17,20 +28,18 @@ def get_album_artwork_description(audio_file) -> str:
             if isinstance(tag, APIC):
                 artwork_data = tag.data
                 break
+            
+    # Reduce image size by 3
+    # This gives me a better performance on the Huggingface API
+    image = Image.open(io.BytesIO(artwork_data))
+    image.thumbnail((image.width // 3, image.height // 3))
+    buffered = io.BytesIO()
+
+    # Save image to a buffer
+    image.save(buffered, format="JPEG")
+
+    # Get image description
+    buffered.seek(0)
+    artwork_data = buffered.read()
 
     return _get_image_description(artwork_data)
-
-
-
-# import requests
-
-# API_URL = "https://api-inference.huggingface.co/models/Salesforce/blip-image-captioning-base"
-# headers = {"Authorization": f"Bearer {API_TOKEN}"}
-
-# def query(filename):
-#     with open(filename, "rb") as f:
-#         data = f.read()
-#     response = requests.post(API_URL, headers=headers, data=data)
-#     return response.json()
-
-# output = query("cats.jpg")
