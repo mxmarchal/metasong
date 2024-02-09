@@ -47,26 +47,20 @@ class Metadata:
 
 def _get_sentiment_from_lyrics(lyrics: str) -> str:
     client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
-    #     I'm going to give you lyrics of a song.
-    # You'll have to ouput me the response in a JSON format, no other conversation or words, just the list.
-
-    # I want 2 keys 
-    # - themes: a list describing the feeling, mood and themes of the lyrics (only words, no sentence)
-    # -keywords: a list of important words found in the lyrics (like in the chorus, only words, no sentence)
-
-    context = "I'm going to give you lyrics of a song. You'll have to ouput me the response in a JSON format, no other conversation or words, just the list. I want 2 keys - themes: a list describing the feeling, mood and themes of the lyrics (only words, no sentence) -keywords: a list of important words found in the lyrics (like in the chorus, only words, no sentence)"
-    
     chat_completion = client.chat.completions.create(
         messages=[
             {
+                "role": "system",
+                "content": "I'm going to give you lyrics of a song. You'll have to ouput me the response in a JSON format, no other conversation or words, just the list. I want 2 keys - themes: a list describing the feeling, mood and themes of the lyrics (only words, no sentence) -keywords: a list of important words found in the lyrics (like in the chorus, only words, no sentence). You must give me the anwser in English."
+            },
+            {
                 "role": "user",
-                "content": context + "\n" + lyrics
+                "content": lyrics
             }
         ],
         model="gpt-3.5-turbo-0125",
         response_format={"type":"json_object"}
     )
-    print(chat_completion.choices[0].message.content)
     return chat_completion.choices[0].message.content
 
 def extract_lyrics_from_html(html: str) -> str:
@@ -127,16 +121,12 @@ def get_metadata(audio_file_path: str, album_artwork_description: str) -> Metada
             metadata.lyrics = get_lyrics(metadata.authors[0], metadata.title)
             if metadata.lyrics != "None":
                 sentiment_raw = _get_sentiment_from_lyrics(metadata.lyrics)
-                # Save sentiment json file for debugging purposes
-                with open("sentiment_raw.json", "w") as f:
-                    f.write(sentiment_raw)
                 # try to json parse the sentiment
                 try:
                     sentiment_json = json.loads(sentiment_raw)
                     # check we have the right keys
                     if "themes" in sentiment_json and "keywords" in sentiment_json:
                         metadata.sentiment = Metadata.Sentiment(sentiment_json["themes"], sentiment_json["keywords"])
-                        print(metadata.sentiment)
                     else:
                         print("Sentiment not in the right format (missing keys)")
                 except:
