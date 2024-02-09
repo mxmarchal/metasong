@@ -11,10 +11,10 @@ import json
 class Metadata:
 
     class Sentiment:
-        themes: str
-        keywords: str
+        themes: list[str]
+        keywords: list[str]
 
-        def __init__(self, themes: str, keywords: str):
+        def __init__(self, themes: list[str], keywords: list[str]):
             self.themes = themes
             self.keywords = keywords
 
