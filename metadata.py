@@ -27,7 +27,7 @@ class Metadata:
     title: str
     authors: list[str]
     album: str
-    year: int
+    year: int | None
     duration: int
     artwork_description: str | None
     lyrics: str | None
@@ -38,7 +38,7 @@ class Metadata:
                  title: str,
                  authors: list[str],
                  album: str,
-                 year: int,
+                 year: int | None,
                  duration: int,
                  artwork_description: str,
                  lyrics: str, sentiment: Sentiment):
@@ -73,13 +73,28 @@ def get_metadata(
     # Loading metadata from audio file
     audio = MP3(audio_file_path, ID3=EasyID3)
 
+    date = audio["date"][0] if "date" in audio else None
+
+    # if date is 4 digits, it's a year
+    if date:
+        if date.isdigit() and len(date) == 4:
+            metadata.year = int(date)
+        else:
+            # Try to parse the date
+            try:
+                date = datetime.datetime.strptime(date, '%Y-%m-%d')
+                print("GOT DATE", date)
+                metadata.year = int(date.year)
+            except ValueError:
+                metadata.year = None
+    else:
+        metadata.year = None
+
     # Extracting basic info
     metadata.track_number = audio["tracknumber"][0]
     metadata.title = audio["title"][0]
     metadata.authors = audio["artist"]
     metadata.album = audio["album"][0]
-    date = datetime.datetime.strptime(audio["date"][0], '%Y-%m-%d')
-    metadata.year = date.year
     metadata.duration = int(audio.info.length)
 
     # Get lyrics

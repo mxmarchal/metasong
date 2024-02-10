@@ -44,6 +44,10 @@ def get_album_artwork_description(audio_file) -> str | None:
             artwork_data = tag.data
             break
 
+    if artwork_data is None:
+        print("Artwork not found")
+        return None
+
     # Scale image to 512x512
     image = Image.open(io.BytesIO(artwork_data))
     image = image.resize((512, 512))
