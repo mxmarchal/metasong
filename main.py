@@ -8,7 +8,9 @@ from multiprocessing import Pool
 
 
 def save_metadata_to_json(metadata: Metadata, file_path):
-    json_file_path = os.path.splitext(file_path)[0] + '.json'
+    output = os.environ.get("OUTPUT_PATH", "./output")
+    filename = os.path.basename(file_path)
+    json_file_path = os.path.join(output, filename)
     with open(json_file_path, 'w') as f:
         metadata_dict = metadata.__dict__
         metadata_dict['sentiment'] = metadata.sentiment.to_dict()  # Convert Sentiment to dict
