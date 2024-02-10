@@ -2,8 +2,6 @@
 
 This Python script extracts metadata and lyrics from audio files in an album folder (MP3 format) and saves them to JSON files. It utilizes multiprocessing for parallel processing, making it efficient for handling a large number of audio files.
 
-Don't judge me for the "None" string instead of None. I'm lazy.
-
 ## Features
 
 - Extracts metadata such as track number, title, authors, album, year, duration, artwork description, and sentiment analysis. (Powered by Hugging Face's Transformers library and OpenAI's GPT-3.5 Turbo API)

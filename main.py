@@ -22,7 +22,7 @@ def _get_list_of_audio_files(path):
                 audio_files.append(os.path.join(root, file))
     return audio_files
 
-def process_audio_file(audio_file, album_artwork_description):
+def process_audio_file(audio_file: str, album_artwork_description: str | None):
     print(f"Processing {audio_file}...")
     metadata = get_metadata(audio_file, album_artwork_description)
     save_metadata_to_json(metadata, audio_file)
@@ -49,7 +49,7 @@ def main():
 
     # Get album artwork description
     album_artwork_description = get_album_artwork_description(audio_files[0])
-    if album_artwork_description == "None":
+    if album_artwork_description == None:
         print("Album artwork description not found")
 
 

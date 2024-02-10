@@ -37,7 +37,7 @@ def get_lyrics(author: str, title: str) -> str:
     response = requests.get(search_url, headers=headers)
 
     if response.status_code != 200:
-        return "None"
+        return None
     json_response = response.json()
     
     # Get first hit
@@ -47,6 +47,6 @@ def get_lyrics(author: str, title: str) -> str:
     lyrics_url = hit['result']['url']
     response = requests.get(lyrics_url)
     if response.status_code != 200:
-        return "None"
+        return None
     lyrics = extract_lyrics_from_html(response.text)
     return lyrics

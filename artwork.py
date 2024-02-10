@@ -4,22 +4,22 @@ import os
 from PIL import Image
 import io
 
-def _get_image_description(image_data) -> str:
+def _get_image_description(image_data) -> str | None:
     if image_data is None:
-        return "None"
+        return None
     huggingface_api_token = os.environ.get('HUGGINGFACE_API_TOKEN')
     if huggingface_api_token is None:
         print("Huggingface API token not found")
-        return "None"
+        return None
     headers = {"Authorization": f"Bearer {huggingface_api_token}"}
     response = requests.post("https://api-inference.huggingface.co/models/Salesforce/blip-image-captioning-base", data=image_data, headers=headers)
     if response.status_code != 200:
         print("Error getting image description from Huggingface API")
-        return "None"
+        return None
     response_json = response.json()
     return response_json[0]["generated_text"]
 
-def get_album_artwork_description(audio_file) -> str:
+def get_album_artwork_description(audio_file) -> str | None:
     # Get album artwork
     id3 = ID3(audio_file)
     artwork_data = None

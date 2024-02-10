@@ -27,8 +27,8 @@ class Metadata:
     album: str
     year: int
     duration: int
-    artwork_description: str
-    lyrics: str
+    artwork_description: str | None
+    lyrics: str | None
     sentiment: Sentiment
     vectors: list[float]
 
@@ -45,7 +45,7 @@ class Metadata:
         self.sentiment = sentiment
         self.vectors = vectors
 
-def get_metadata(audio_file_path: str, album_artwork_description: str) -> Metadata:
+def get_metadata(audio_file_path: str, album_artwork_description: str | None) -> Metadata:
         metadata = Metadata(
             track_number=0,
             title="",
@@ -73,7 +73,7 @@ def get_metadata(audio_file_path: str, album_artwork_description: str) -> Metada
         # Get lyrics
         if metadata.title and metadata.authors:
             metadata.lyrics = get_lyrics(metadata.authors[0], metadata.title)
-            if metadata.lyrics != "None":
+            if metadata.lyrics != None:
                 sentiment_raw = get_sentiment_from_lyrics(metadata.lyrics)
                 # try to json parse the sentiment
                 try:
