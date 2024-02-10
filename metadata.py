@@ -7,9 +7,9 @@ import requests
 import pyquery as pq
 from openai import OpenAI
 import json
+import uuid
 
 class Metadata:
-
     class Sentiment:
         themes: list[str]
         keywords: list[str]
@@ -24,6 +24,7 @@ class Metadata:
                 'keywords': self.keywords
             }
 
+    uuid: str
     track_number: int
     title: str
     authors: list[str]
@@ -33,8 +34,10 @@ class Metadata:
     artwork_description: str
     lyrics: str
     sentiment: Sentiment
+    vectors: list[float]
 
-    def __init__(self, track_number: int, title: str, authors: list[str], album: str, year: int, duration: int, artwork_description: str, lyrics: str, sentiment: Sentiment):
+    def __init__(self, uuid: str, track_number: int, title: str, authors: list[str], album: str, year: int, duration: int, artwork_description: str, lyrics: str, sentiment: Sentiment, vectors: list[float]):
+        self.uuid = uuid if uuid else str(uuid.uuid4())
         self.track_number = track_number
         self.title = title
         self.authors = authors
@@ -44,6 +47,7 @@ class Metadata:
         self.artwork_description = artwork_description
         self.lyrics = lyrics
         self.sentiment = sentiment
+        self.vectors = vectors
 
 def _get_sentiment_from_lyrics(lyrics: str) -> str:
     client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
@@ -102,7 +106,8 @@ def get_metadata(audio_file_path: str, album_artwork_description: str) -> Metada
             duration=0,
             artwork_description=album_artwork_description,
             lyrics="Lyrics not found",
-            sentiment=Metadata.Sentiment("", "")
+            sentiment=Metadata.Sentiment("", ""),
+            vectors=[]
         )
 
         # Loading metadata from audio file

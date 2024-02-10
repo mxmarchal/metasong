@@ -6,6 +6,7 @@ import argparse
 from metadata import Metadata
 from openai import OpenAI
 from multiprocessing import Pool
+from main import save_metadata_to_json
 
 class VectorizePayload:
   def __init__(self, metadata: Metadata):
@@ -52,7 +53,7 @@ def get_json_files(path: str) -> list[str]:
 
 def is_valid_metadata(metadata_dict):
     # Check if the JSON data corresponds to the Metadata model
-    required_keys = ['track_number', 'title', 'authors', 'album', 'year', 'duration', 'artwork_description', 'lyrics']
+    required_keys = ['uuid', 'track_number', 'title', 'authors', 'album', 'year', 'duration', 'artwork_description', 'lyrics']
     for key in required_keys:
         if key not in metadata_dict:
             return False
@@ -72,21 +73,17 @@ def read_metadata_from_json(file_path):
         else:
             raise ValueError("JSON data does not correspond to Metadata model")
 
-def save_vector_to_json(vector: list[float], file_path: str):
-  json_file_path = os.path.splitext(file_path)[0] + '_vector.json'
-  with open(json_file_path, 'w') as f:
-    json.dump(vector, f)
-
 def process_json_file(json_file):
   print(f"Processing {json_file}...")
   metadata = read_metadata_from_json(json_file)
   payload = VectorizePayload(metadata)
   vectors = vectorize(payload)
-  save_vector_to_json(vectors, json_file)
-  print(f"Vectorized data saved to {os.path.splitext(json_file)[0]}_vector.json")
+  metadata.vectors = vectors
+  save_metadata_to_json(metadata, json_file)
+  print(f"Vectorized data saved to {os.path.splitext(json_file)[0]}.json")
   return vectors
 
-def main():
+def main_vector():
   load_dotenv()
   parser = argparse.ArgumentParser(description="Vectorize metadata and lyrics from an album folder (MP3)")
   parser.add_argument("path", help="Path to the album forlder (MP3)")
@@ -115,4 +112,4 @@ def main():
     pool.starmap(process_json_file, [(json_file,) for json_file in json_files])
 
 if __name__ == "__main__":
-  main()
+  main_vector()
