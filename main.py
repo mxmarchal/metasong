@@ -61,9 +61,8 @@ def main():
 
 
     # Process audio files
-    process_audio_file(audio_files[0], album_artwork_description)
-    # with Pool() as pool:
-    #     pool.starmap(process_audio_file, [(audio_file, album_artwork_description) for audio_file in audio_files])
+    with Pool() as pool:
+        pool.starmap(process_audio_file, [(audio_file, album_artwork_description) for audio_file in audio_files])
 
 if __name__ == "__main__":
     main()
