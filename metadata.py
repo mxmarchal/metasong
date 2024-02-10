@@ -6,6 +6,7 @@ from lyrics import get_lyrics, get_sentiment_from_lyrics
 import json
 import uuid
 
+
 class Metadata:
     class Sentiment:
         themes: list[str]
@@ -32,7 +33,15 @@ class Metadata:
     lyrics: str | None
     sentiment: Sentiment
 
-    def __init__(self, track_number: int, title: str, authors: list[str], album: str, year: int, duration: int, artwork_description: str, lyrics: str, sentiment: Sentiment):
+    def __init__(self,
+                 track_number: int,
+                 title: str,
+                 authors: list[str],
+                 album: str,
+                 year: int,
+                 duration: int,
+                 artwork_description: str,
+                 lyrics: str, sentiment: Sentiment):
         self.uuid = str(uuid.uuid4())
         self.track_number = track_number
         self.title = title
@@ -44,8 +53,12 @@ class Metadata:
         self.lyrics = lyrics
         self.sentiment = sentiment
 
-def get_metadata(audio_file_path: str, album_artwork_description: str | None) -> Metadata:
-        metadata = Metadata(
+
+def get_metadata(
+        audio_file_path: str,
+        album_artwork_description: str | None
+        ) -> Metadata:
+    metadata = Metadata(
             track_number=0,
             title="",
             authors=[],
@@ -57,30 +70,33 @@ def get_metadata(audio_file_path: str, album_artwork_description: str | None) ->
             sentiment=Metadata.Sentiment("", ""),
         )
 
-        # Loading metadata from audio file
-        audio = MP3(audio_file_path, ID3=EasyID3)
+    # Loading metadata from audio file
+    audio = MP3(audio_file_path, ID3=EasyID3)
 
-        # Extracting basic info
-        metadata.track_number = audio["tracknumber"][0]
-        metadata.title = audio["title"][0]
-        metadata.authors = audio["artist"]
-        metadata.album = audio["album"][0]
-        metadata.year = datetime.datetime.strptime(audio["date"][0], '%Y-%m-%d').year
-        metadata.duration = int(audio.info.length)
+    # Extracting basic info
+    metadata.track_number = audio["tracknumber"][0]
+    metadata.title = audio["title"][0]
+    metadata.authors = audio["artist"]
+    metadata.album = audio["album"][0]
+    date = datetime.datetime.strptime(audio["date"][0], '%Y-%m-%d')
+    metadata.year = date.year
+    metadata.duration = int(audio.info.length)
 
-        # Get lyrics
-        if metadata.title and metadata.authors:
-            metadata.lyrics = get_lyrics(metadata.authors[0], metadata.title)
-            if metadata.lyrics != None:
-                sentiment_raw = get_sentiment_from_lyrics(metadata.lyrics)
-                # try to json parse the sentiment
-                try:
-                    sentiment_json = json.loads(sentiment_raw)
-                    # check we have the right keys
-                    if "themes" in sentiment_json and "keywords" in sentiment_json:
-                        metadata.sentiment = Metadata.Sentiment(sentiment_json["themes"], sentiment_json["keywords"])
-                    else:
-                        print("Sentiment not in the right format (missing keys)")
-                except:
-                    print("Sentiment not in the right format (not a JSON)")
-        return metadata
+    # Get lyrics
+    if metadata.title and metadata.authors:
+        metadata.lyrics = get_lyrics(metadata.authors[0], metadata.title)
+        if metadata.lyrics is not None:
+            sentiment_raw = get_sentiment_from_lyrics(metadata.lyrics)
+            # try to json parse the sentiment
+            try:
+                sentiment_json = json.loads(sentiment_raw)
+                # check we have the right keys
+                if "themes" in sentiment_json and "keywords" in sentiment_json:
+                    metadata.sentiment = Metadata.Sentiment(
+                        sentiment_json["themes"],
+                        sentiment_json["keywords"])
+                else:
+                    print("Sentiment not in the right format (missing keys)")
+            except ValueError:
+                print("Sentiment not in the right format (not a JSON)")
+    return metadata
