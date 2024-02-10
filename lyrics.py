@@ -50,6 +50,10 @@ def get_lyrics(author: str, title: str) -> str:
         return None
     json_response = response.json()
     # Get first hit
+    # Actually, this is fuckup sometimes
+    # Because the hit is not good
+    # (like giving a non-english version of the lyrics)
+    # Should use GPT to find the good one
     hit = json_response["response"]["hits"][0]
 
     # Get lyrics from Genius
