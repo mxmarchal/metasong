@@ -7,7 +7,6 @@ import requests
 import pyquery as pq
 from openai import OpenAI
 import json
-import uuid
 
 class Metadata:
     class Sentiment:
