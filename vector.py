@@ -3,9 +3,9 @@ import os
 import json
 from dotenv import load_dotenv
 import argparse
-import requests
 from metadata import Metadata
-import time
+from openai import OpenAI
+from multiprocessing import Pool
 
 class VectorizePayload:
   def __init__(self, metadata: Metadata):
@@ -26,23 +26,21 @@ class VectorizePayload:
             "sentences": additional_sentences
         }
     }
+  
+  def to_string(self):
+    themes = ",".join(self.metadata.sentiment.themes)
+    keywords = ",".join(self.metadata.sentiment.keywords)
+    return f"{self.metadata.lyrics} {themes} {keywords} {self.metadata.title} {self.metadata.artwork_description} {' '.join(self.metadata.authors)}"
 
 def vectorize(payload: VectorizePayload) -> list[float]:
-  API_URL = "https://api-inference.huggingface.co/models/sentence-transformers/all-MiniLM-L6-v2"
-  headers = {
-      "Authorization": f"Bearer {os.environ.get('HUGGINGFACE_API_TOKEN')}"
-  }
-  response = requests.post(API_URL, headers=headers, json=payload.to_dict())
-  if response.status_code != 200:
-      if response.status_code == 503:
-          response_json = response.json()
-          estimated_time = response_json.get("estimated_time", "30")
-          print(f"Model is loading, retry in {estimated_time} seconds")
-          time.sleep(float(estimated_time))
-          return vectorize(payload)
-      else:
-        raise ValueError(f"Request failed with status code {response.status_code}")
-  return response.json()
+  client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+  embeddings = client.embeddings.create(
+      model="text-embedding-3-small",
+      input=payload.to_string()
+  )
+  vectors = embeddings.data[0].embedding
+  return vectors
+   
 
 def get_json_files(path: str) -> list[str]:
   json_files = []
@@ -74,10 +72,18 @@ def read_metadata_from_json(file_path):
         else:
             raise ValueError("JSON data does not correspond to Metadata model")
 
+def save_vector_to_json(vector: list[float], file_path: str):
+  json_file_path = os.path.splitext(file_path)[0] + '_vector.json'
+  with open(json_file_path, 'w') as f:
+    json.dump(vector, f)
 
-def exec_vectorize(metadata: Metadata):
+def process_json_file(json_file):
+  print(f"Processing {json_file}...")
+  metadata = read_metadata_from_json(json_file)
   payload = VectorizePayload(metadata)
   vectors = vectorize(payload)
+  save_vector_to_json(vectors, json_file)
+  print(f"Vectorized data saved to {os.path.splitext(json_file)[0]}_vector.json")
   return vectors
 
 def main():
@@ -87,8 +93,8 @@ def main():
   args = parser.parse_args()
 
   # Check API key is set
-  if not os.environ.get('HUGGINGFACE_API_TOKEN'):
-      print("Huggingface API key not set")
+  if not os.environ.get('OPENAI_API_KEY'):
+      print("OpenAI API key not found")
       return
 
   # Check if the path is a folder and exists
@@ -104,14 +110,9 @@ def main():
       return
   print(f"Found {len(json_files)} json files in the specified folder")
 
-  # test with first file
-  metadata = read_metadata_from_json(json_files[0])
-  vector = exec_vectorize(metadata)
-  print(vector)
-
-  # for json_file in json_files:
-  #   metadata = read_metadata_from_json(json_file)
-  #   print(metadata.authors)
+  # Process json files
+  with Pool() as pool:
+    pool.starmap(process_json_file, [(json_file,) for json_file in json_files])
 
 if __name__ == "__main__":
   main()
