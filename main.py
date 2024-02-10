@@ -9,7 +9,7 @@ from multiprocessing import Pool
 
 def save_metadata_to_json(metadata: Metadata, file_path):
     output = os.environ.get("OUTPUT_PATH", "./output")
-    filename = os.path.basename(file_path)
+    filename = os.path.splitext(os.path.basename(file_path))[0] + ".json"
     json_file_path = os.path.join(output, filename)
     with open(json_file_path, 'w') as f:
         metadata_dict = metadata.__dict__
@@ -49,6 +49,11 @@ def main():
         return
     print(f"Found {len(audio_files)} audio files in the specified folder")
 
+    # Create output folder if it does not exist
+    output = os.environ.get("OUTPUT_PATH", "./output")
+    if not os.path.exists(output):
+        os.makedirs(output)
+
     # Get album artwork description
     album_artwork_description = get_album_artwork_description(audio_files[0])
     if album_artwork_description == None:
@@ -56,8 +61,9 @@ def main():
 
 
     # Process audio files
-    with Pool() as pool:
-        pool.starmap(process_audio_file, [(audio_file, album_artwork_description) for audio_file in audio_files])
+    process_audio_file(audio_files[0], album_artwork_description)
+    # with Pool() as pool:
+    #     pool.starmap(process_audio_file, [(audio_file, album_artwork_description) for audio_file in audio_files])
 
 if __name__ == "__main__":
     main()

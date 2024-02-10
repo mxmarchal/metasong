@@ -4,6 +4,7 @@ from mutagen.easyid3 import EasyID3
 import datetime
 from lyrics import get_lyrics, get_sentiment_from_lyrics
 import json
+import uuid
 
 class Metadata:
     class Sentiment:
@@ -30,10 +31,9 @@ class Metadata:
     artwork_description: str | None
     lyrics: str | None
     sentiment: Sentiment
-    vectors: list[float]
 
-    def __init__(self, uuid: str, track_number: int, title: str, authors: list[str], album: str, year: int, duration: int, artwork_description: str, lyrics: str, sentiment: Sentiment, vectors: list[float]):
-        self.uuid = uuid if uuid else str(uuid.uuid4())
+    def __init__(self, track_number: int, title: str, authors: list[str], album: str, year: int, duration: int, artwork_description: str, lyrics: str, sentiment: Sentiment):
+        self.uuid = str(uuid.uuid4())
         self.track_number = track_number
         self.title = title
         self.authors = authors
@@ -43,7 +43,6 @@ class Metadata:
         self.artwork_description = artwork_description
         self.lyrics = lyrics
         self.sentiment = sentiment
-        self.vectors = vectors
 
 def get_metadata(audio_file_path: str, album_artwork_description: str | None) -> Metadata:
         metadata = Metadata(
@@ -56,7 +55,6 @@ def get_metadata(audio_file_path: str, album_artwork_description: str | None) ->
             artwork_description=album_artwork_description,
             lyrics="Lyrics not found",
             sentiment=Metadata.Sentiment("", ""),
-            vectors=[]
         )
 
         # Loading metadata from audio file
