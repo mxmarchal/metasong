@@ -4,7 +4,7 @@ This Python script extracts metadata and lyrics from audio files in an album fol
 
 ## Features
 
-- Extracts metadata such as track number, title, authors, album, year, duration, artwork description, and sentiment analysis. (Powered by Hugging Face's Transformers library and OpenAI's GPT-3.5 Turbo API)
+- Extracts metadata such as track number, title, authors, album, year, duration, artwork description, and sentiment analysis. (Powered by OpenAI's GPT-3.5 Turbo API and GPT-4 Vision API.)
 - Retrieves lyrics from audio files using the Genius API.
 - Utilizes multiprocessing to process audio files in parallel, improving performance.
 
@@ -12,6 +12,8 @@ This Python script extracts metadata and lyrics from audio files in an album fol
 
 - Python 3.x
 - External dependencies (check requirements.txt for details)
+- OpenAI API key (GPT-3.5 Turbo and GPT-4 Vision a.k.a. you need to pay for this service.)
+- Genius API access token
 
 ## Installation
 
@@ -33,7 +35,6 @@ Create a .env file in the project directory and set the following environment va
 ```bash
 OPENAI_API_KEY=your_openai_api_key
 GENIUS_ACCESS_TOKEN=your_genius_access_token
-HUGGINGFACE_API_TOKEN=your_huggingface_api_token
 ```
 
 ## Usage

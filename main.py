@@ -57,8 +57,7 @@ def main():
     # Get album artwork description
     album_artwork_description = get_album_artwork_description(audio_files[0])
     if album_artwork_description == None:
-        print("Album artwork description not found")
-
+        print("Album artwork description not found")   
 
     # Process audio files
     with Pool() as pool:

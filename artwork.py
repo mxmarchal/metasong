@@ -1,23 +1,36 @@
 from mutagen.id3 import ID3, APIC
-import requests
 import os
 from PIL import Image
 import io
+from openai import OpenAI 
+import base64
 
-def _get_image_description(image_data) -> str | None:
+def _get_image_description(image_data: str | None) -> str | None:
     if image_data is None:
         return None
-    huggingface_api_token = os.environ.get('HUGGINGFACE_API_TOKEN')
-    if huggingface_api_token is None:
-        print("Huggingface API token not found")
-        return None
-    headers = {"Authorization": f"Bearer {huggingface_api_token}"}
-    response = requests.post("https://api-inference.huggingface.co/models/Salesforce/blip-image-captioning-base", data=image_data, headers=headers)
-    if response.status_code != 200:
-        print("Error getting image description from Huggingface API")
-        return None
-    response_json = response.json()
-    return response_json[0]["generated_text"]
+    client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+    chat_completion = client.chat.completions.create(
+        messages=[
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": "Describe the album cover. Simple and straight to the point."
+                    },
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": f"data:image/jpeg;base64,{image_data}"
+                        }
+                    }
+                ]
+            }
+        ],
+        model="gpt-4-vision-preview",
+        max_tokens=300,
+    )
+    return chat_completion.choices[0].message.content
 
 def get_album_artwork_description(audio_file) -> str | None:
     # Get album artwork
@@ -27,18 +40,17 @@ def get_album_artwork_description(audio_file) -> str | None:
             if isinstance(tag, APIC):
                 artwork_data = tag.data
                 break
+
+
+
             
-    # Reduce image size by 3
-    # This gives me a better performance on the Huggingface API
+    # Scale image to 512x512
     image = Image.open(io.BytesIO(artwork_data))
-    image.thumbnail((image.width // 3, image.height // 3))
-    buffered = io.BytesIO()
+    image = image.resize((512, 512))
+    
+    image_base64 = io.BytesIO()
+    image.save(image_base64, format="JPEG")
+    image_base64 = base64.b64encode(image_base64.getvalue()).decode('utf-8')
 
-    # Save image to a buffer
-    image.save(buffered, format="JPEG")
 
-    # Get image description
-    buffered.seek(0)
-    artwork_data = buffered.read()
-
-    return _get_image_description(artwork_data)
+    return _get_image_description(image_base64)
